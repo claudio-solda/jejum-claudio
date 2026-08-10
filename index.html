@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#12141c">
+<title>Jejum · Claudio</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSmVqdW0gLSBDbGFkaW8iLCJzaG9ydF9uYW1lIjoiSmVqdW0iLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzEyMTQxYyIsInRoZW1lX2NvbG9yIjoiIzEyMTQxYyJ9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night-deep:#0f1119;
+    --night:#181c28;
+    --indigo:#3d4568;
+    --indigo-soft:#535c86;
+    --amber:#e0a23c;
+    --amber-soft:#f0c877;
+    --ember:#e8663f;
+    --paper:#f2eee3;
+    --mist:#8891a8;
+    --line:rgba(242,238,227,0.09);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(120% 140% at 50% -10%, #1b2033 0%, var(--night-deep) 55%, #090a10 100%);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:480px;margin:0 auto;padding:28px 20px 0;}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist);}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;margin:2px 0 0;letter-spacing:-0.01em;}
+  .gear{background:none;border:1px solid var(--line);color:var(--mist);width:38px;height:38px;border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .gear:active{transform:scale(.94);}
+
+  /* clock */
+  .clockbox{position:relative;width:100%;max-width:340px;margin:26px auto 8px;aspect-ratio:1/1;}
+  svg{width:100%;height:100%;display:block;overflow:visible;}
+  .ring-bg{fill:none;stroke:var(--night);stroke-width:14;}
+  .ring-fast{fill:none;stroke:var(--indigo);stroke-width:14;}
+  .ring-eat{fill:none;stroke:var(--amber);stroke-width:14;}
+  .tick{stroke:rgba(242,238,227,0.16);stroke-width:1;}
+  .tick.major{stroke:rgba(242,238,227,0.32);stroke-width:1.4;}
+  .now-dot{fill:var(--paper);stroke:var(--night-deep);stroke-width:2;filter:drop-shadow(0 0 6px rgba(242,238,227,.6));}
+
+  .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:64%;}
+  .phase-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mist);margin-bottom:6px;}
+  .phase-label.eating{color:var(--amber-soft);}
+  .phase-label.fasting{color:var(--indigo-soft);}
+  .countdown{font-family:'Space Grotesk',sans-serif;font-size:38px;font-weight:700;letter-spacing:-0.01em;line-height:1;}
+  .sub{font-size:12px;color:var(--mist);margin-top:6px;}
+
+  .legend{display:flex;justify-content:center;gap:22px;margin:18px 0 30px;font-size:12px;color:var(--mist);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot.a{background:var(--amber);}
+  .dot.f{background:var(--indigo-soft);}
+
+  .card{background:rgba(242,238,227,0.035);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;}
+  .card h2{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;margin:0 0 12px;color:var(--paper);}
+
+  .streak-row{display:flex;align-items:center;justify-content:space-between;}
+  .streak-num{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;color:var(--amber-soft);}
+  .streak-cap{font-size:11px;color:var(--mist);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;}
+  .days{display:flex;gap:6px;margin-top:14px;}
+  .day{flex:1;height:34px;border-radius:8px;background:var(--night);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mist);font-family:'JetBrains Mono',monospace;}
+  .day.done{background:var(--amber);color:#2a1c04;border-color:var(--amber);font-weight:700;}
+  .day.done.sugar{background:var(--indigo-soft);color:#12141c;border-color:var(--indigo-soft);}
+  .day.today{border-color:var(--amber-soft);}
+
+  .btn{width:100%;border:none;border-radius:14px;padding:15px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;cursor:pointer;margin-top:4px;}
+  .btn.primary{background:var(--amber);color:#241a04;}
+  .btn.primary:active{transform:scale(.98);}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--paper);}
+  .btn:disabled{opacity:.45;}
+
+  .field{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);}
+  .field:last-child{border-bottom:none;}
+  .field label{font-size:13px;color:var(--paper);}
+  .field small{display:block;color:var(--mist);font-size:11px;margin-top:2px;}
+  input[type=time]{background:var(--night);border:1px solid var(--line);color:var(--paper);border-radius:10px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;}
+  input[type=range]{width:130px;accent-color:var(--amber);}
+  .rangeval{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber-soft);min-width:38px;text-align:right;display:inline-block;}
+
+  .overlay{position:fixed;inset:0;background:rgba(9,10,16,0.72);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center;z-index:20;}
+  .overlay.show{display:flex;}
+  .sheet{background:#171b28;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:22px 20px 28px;border:1px solid var(--line);animation:up .22s ease;}
+  @keyframes up{from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1}}
+  .sheet h2{font-family:'Space Grotesk',sans-serif;margin:0 0 4px;font-size:17px;}
+  .sheet .hint{font-size:12px;color:var(--mist);margin-bottom:14px;}
+  .close-row{text-align:right;margin-top:16px;}
+
+  footer{text-align:center;color:var(--mist);font-size:11px;margin-top:22px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow" id="eyebrowLabel">jejum intermitente</div>
+      <h1>Jejum intermitente</h1>
+    </div>
+    <button class="gear" onclick="openSettings()">⚙</button>
+  </header>
+
+  <div class="clockbox">
+    <svg viewBox="0 0 300 300" id="clocksvg"></svg>
+    <div class="center">
+      <div class="phase-label" id="phaseLabel">—</div>
+      <div class="countdown" id="countdown">--:--:--</div>
+      <div class="sub" id="subLabel">carregando…</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot a"></i>Janela de alimentação</span>
+    <span><i class="dot f"></i>Jejum</span>
+  </div>
+
+  <div class="card">
+    <div class="streak-row">
+      <div>
+        <div class="streak-num" id="streakNum">0</div>
+        <div class="streak-cap">dias seguidos</div>
+      </div>
+      <button class="btn primary" style="width:auto;padding:12px 18px;" id="markBtn" onclick="markToday()">Marcar hoje ✓</button>
+    </div>
+    <div class="days" id="daysRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="streak-row">
+      <div>
+        <div class="streak-num" id="sugarStreakNum" style="color:var(--indigo-soft);">0</div>
+        <div class="streak-cap">dias sem açúcar</div>
+      </div>
+      <button class="btn primary" style="width:auto;padding:12px 18px;background:var(--indigo-soft);color:#12141c;" id="markSugarBtn" onclick="markSugarToday()">Marcar hoje ✓</button>
+    </div>
+    <div class="days" id="sugarDaysRow"></div>
+  </div>
+
+  <div class="card">
+    <h2>Guia rápido · Arroz &amp; Feijão</h2>
+    <div class="field">
+      <div><label>Arroz</label><small>1 concha média (≈4 colheres de sopa)</small></div>
+    </div>
+    <div class="field">
+      <div><label>Feijão</label><small>1 concha (com caldo)</small></div>
+    </div>
+    <div class="field" style="border-bottom:none;">
+      <div><small style="color:var(--mist);">Dia mais puxado no trabalho? Pode ir até 2 conchas de arroz. Foco em controlar peso: 1 de cada + proteína + salada já é suficiente.</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sua janela</h2>
+    <div class="field">
+      <div><label>Começa a comer</label><small>ex.: seu almoço às 12:15</small></div>
+      <input type="time" id="startInput" value="09:00">
+    </div>
+    <div class="field">
+      <div><label>Duração da janela</label><small>tempo pra comer por dia</small></div>
+      <span><input type="range" id="durInput" min="4" max="10" step="0.25" value="8" oninput="updateDurLabel()"><span class="rangeval" id="durLabel">8h</span></span>
+    </div>
+    <button class="btn ghost" onclick="saveSettings()">Salvar janela</button>
+  </div>
+
+  <footer>toda hora conta</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>Ajustar janela de alimentação</h2>
+    <div class="hint">Baseado no seu dia: almoço às 12:15, sem café da manhã. Ajuste se mudar.</div>
+    <div class="field">
+      <div><label>Começa a comer</label></div>
+      <input type="time" id="startInput2" value="09:00">
+    </div>
+    <div class="field">
+      <div><label>Duração da janela</label></div>
+      <span><input type="range" id="durInput2" min="4" max="10" step="0.25" value="8" oninput="updateDurLabel(2)"><span class="rangeval" id="durLabel2">8h</span></span>
+    </div>
+    <button class="btn primary" onclick="saveSettings(true)">Salvar</button>
+    <div class="close-row"><button class="btn ghost" onclick="closeSettings()">Fechar</button></div>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'jejum_claudio_v1';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { startMin: 12*60+15, durHours: 6.75, history: {}, sugarHistory: {} };
+}
+function saveState(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
+
+let state = loadState();
+if(!state.sugarHistory) state.sugarHistory = {};
+
+function fmtHM(min){
+  min = ((min%1440)+1440)%1440;
+  const h = Math.floor(min/60), m = min%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function minToInput(min){ return fmtHM(min); }
+function inputToMin(str){
+  const [h,m] = str.split(':').map(Number);
+  return h*60+m;
+}
+
+function fmtDur(hoursFloat){
+  const totalMin = Math.round(hoursFloat*60);
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  return m===0 ? `${h}h` : `${h}h${String(m).padStart(2,'0')}`;
+}
+
+function updateDurLabel(which){
+  const v = Number(document.getElementById(which===2?'durInput2':'durInput').value);
+  document.getElementById(which===2?'durLabel2':'durLabel').textContent = fmtDur(v);
+}
+
+function syncInputs(){
+  document.getElementById('startInput').value = minToInput(state.startMin);
+  document.getElementById('startInput2').value = minToInput(state.startMin);
+  document.getElementById('durInput').value = state.durHours;
+  document.getElementById('durInput2').value = state.durHours;
+  document.getElementById('durLabel').textContent = fmtDur(state.durHours);
+  document.getElementById('durLabel2').textContent = fmtDur(state.durHours);
+  const endMin = (state.startMin + Math.round(state.durHours*60)) % 1440;
+  document.getElementById('eyebrowLabel').textContent = `${minToInput(state.startMin)} – ${minToInput(endMin)} · ${fmtDur(state.durHours)}`;
+}
+
+function openSettings(){ document.getElementById('overlay').classList.add('show'); }
+function closeSettings(){ document.getElementById('overlay').classList.remove('show'); }
+
+function saveSettings(fromSheet){
+  const startStr = document.getElementById(fromSheet?'startInput2':'startInput').value || '09:00';
+  const dur = Number(document.getElementById(fromSheet?'durInput2':'durInput').value);
+  state.startMin = inputToMin(startStr);
+  state.durHours = dur;
+  saveState(state);
+  syncInputs();
+  if(fromSheet) closeSettings();
+  render();
+}
+
+// ---- clock drawing ----
+const NS = 'http://www.w3.org/2000/svg';
+const CX=150, CY=150, R=118;
+function polar(cx,cy,r,angleDeg){
+  const a = (angleDeg-90) * Math.PI/180;
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+function arcPath(cx,cy,r,startDeg,endDeg){
+  // handles wraparound, always draws clockwise from start to end
+  let sweep = endDeg - startDeg;
+  if(sweep <= 0) sweep += 360;
+  const [x1,y1] = polar(cx,cy,r,startDeg);
+  const [x2,y2] = polar(cx,cy,r,startDeg+sweep);
+  const large = sweep > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+}
+
+function buildClockStatic(){
+  const svg = document.getElementById('clocksvg');
+  svg.setAttribute('xmlns', NS);
+  let ticks = '';
+  for(let h=0; h<24; h++){
+    const deg = h*15;
+    const major = h%6===0;
+    const inner = major ? R-14 : R-8;
+    const [x1,y1] = polar(CX,CY,inner,deg);
+    const [x2,y2] = polar(CX,CY,R-2,deg);
+    ticks += `<line class="tick${major?' major':''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  }
+  svg.innerHTML = `
+    <circle class="ring-bg" cx="${CX}" cy="${CY}" r="${R}"/>
+    <path id="arcFast" class="ring-fast"/>
+    <path id="arcEat" class="ring-eat"/>
+    ${ticks}
+    <circle id="nowDot" class="now-dot" r="6"/>
+  `;
+}
+
+function render(){
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+
+  const startMin = state.startMin;
+  const durMin = state.durHours*60;
+  const endMin = (startMin + durMin) % 1440;
+
+  const startDeg = (startMin/1440)*360;
+  const endDeg = (endMin/1440)*360;
+
+  document.getElementById('arcEat').setAttribute('d', arcPath(CX,CY,R,startDeg,endDeg));
+  document.getElementById('arcFast').setAttribute('d', arcPath(CX,CY,R,endDeg,startDeg));
+
+  const nowDeg = (nowMin/1440)*360;
+  const [nx,ny] = polar(CX,CY,R,nowDeg);
+  document.getElementById('nowDot').setAttribute('cx', nx);
+  document.getElementById('nowDot').setAttribute('cy', ny);
+
+  // determine phase
+  let inEating;
+  if(startMin < endMin){
+    inEating = nowMin >= startMin && nowMin < endMin;
+  } else {
+    inEating = nowMin >= startMin || nowMin < endMin;
+  }
+
+  const label = document.getElementById('phaseLabel');
+  const cd = document.getElementById('countdown');
+  const sub = document.getElementById('subLabel');
+
+  let remainMin;
+  if(inEating){
+    label.textContent = 'Janela de alimentação';
+    label.className = 'phase-label eating';
+    remainMin = endMin - nowMin; if(remainMin<0) remainMin += 1440;
+    sub.textContent = 'até o jejum começar';
+  } else {
+    label.textContent = 'Em jejum';
+    label.className = 'phase-label fasting';
+    remainMin = startMin - nowMin; if(remainMin<0) remainMin += 1440;
+    sub.textContent = 'até poder comer';
+  }
+  const totalSec = Math.round(remainMin*60);
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  cd.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  renderStreak();
+}
+
+// ---- streak / history ----
+function dateKey(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function markToday(){
+  const key = dateKey(new Date());
+  state.history[key] = true;
+  saveState(state);
+  renderStreak();
+}
+function renderStreak(){
+  const today = new Date();
+  const key = dateKey(today);
+  const marked = !!state.history[key];
+  document.getElementById('markBtn').textContent = marked ? 'Marcado hoje ✓' : 'Marcar hoje ✓';
+  document.getElementById('markBtn').disabled = marked;
+
+  // streak: consecutive days ending today (or yesterday if today not yet marked)
+  let streak = 0;
+  let cursor = new Date(today);
+  if(!marked) cursor.setDate(cursor.getDate()-1);
+  while(state.history[dateKey(cursor)]){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  document.getElementById('streakNum').textContent = streak;
+
+  // last 7 days row
+  const row = document.getElementById('daysRow');
+  row.innerHTML = '';
+  const labels = ['D','S','T','Q','Q','S','S'];
+  for(let i=6;i>=0;i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i);
+    const dk = dateKey(d);
+    const div = document.createElement('div');
+    div.className = 'day' + (state.history[dk] ? ' done':'') + (i===0?' today':'');
+    div.textContent = state.history[dk] ? '✓' : labels[d.getDay()];
+    row.appendChild(div);
+  }
+}
+
+function markSugarToday(){
+  const key = dateKey(new Date());
+  state.sugarHistory[key] = true;
+  saveState(state);
+  renderSugarStreak();
+}
+function renderSugarStreak(){
+  const today = new Date();
+  const key = dateKey(today);
+  const marked = !!state.sugarHistory[key];
+  document.getElementById('markSugarBtn').textContent = marked ? 'Marcado hoje ✓' : 'Marcar hoje ✓';
+  document.getElementById('markSugarBtn').disabled = marked;
+
+  let streak = 0;
+  let cursor = new Date(today);
+  if(!marked) cursor.setDate(cursor.getDate()-1);
+  while(state.sugarHistory[dateKey(cursor)]){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  document.getElementById('sugarStreakNum').textContent = streak;
+
+  const row = document.getElementById('sugarDaysRow');
+  row.innerHTML = '';
+  const labels = ['D','S','T','Q','Q','S','S'];
+  for(let i=6;i>=0;i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i);
+    const dk = dateKey(d);
+    const div = document.createElement('div');
+    div.className = 'day' + (state.sugarHistory[dk] ? ' done sugar':'') + (i===0?' today':'');
+    div.textContent = state.sugarHistory[dk] ? '✓' : labels[d.getDay()];
+    row.appendChild(div);
+  }
+}
+
+buildClockStatic();
+syncInputs();
+render();
+renderSugarStreak();
+setInterval(render, 1000);
+
+// register minimal SW for installability (no offline caching needed for this simple tool)
+if('serviceWorker' in navigator){
+  const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('fetch', e => {});`;
+  const blob = new Blob([swCode], {type:'text/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+</script>
+</body>
+</html>
